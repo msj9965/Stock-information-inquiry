@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>종합 분석</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'PT Sans', Arial, Verdana;
+            background-color: #eee;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 48px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #222;
+        }
+
+        .menu {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 120px;
+            
+            position: relative;
+            background-color: #2c3e50;
+            z-index: 8;
+        }
+
+        .menu li {
+            float: left;
+            width: 16.6%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .menu a {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            text-decoration: none;
+            position: relative;
+            font-size: 18px;
+            z-index: 9;
+        }
+
+        .menu a.active {
+            background-color: #e74c3c;
+            pointer-events: none;
+        }
+
+        .menu li.slider {
+            width: 16.7%;
+            height: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+            background-color: #e74c3c;
+            z-index: 8;
+            transition: left .4s, background-color .4s;
+        }
+
+        .menu li:nth-child(1):hover,
+        .menu li:nth-child(1):focus,
+        .menu li:nth-child(1):active {
+            & ~ .slider {
+                left: 0;
+                background-color: #3498db;
+            }
+        }
+
+        .menu li:nth-child(2):hover,
+        .menu li:nth-child(2):focus,
+        .menu li:nth-child(2):active {
+            & ~ .slider {
+                left: 16.7%;
+                background-color: #9b59b6;
+            }
+        }
+
+        .menu li:nth-child(3):hover,
+        .menu li:nth-child(3):focus,
+        .menu li:nth-child(3):active {
+            & ~ .slider {
+                left: 33.4%;
+                background-color: #e67e22;
+            }
+        }
+
+        .menu li:nth-child(4):hover,
+        .menu li:nth-child(4):focus,
+        .menu li:nth-child(4):active {
+            & ~ .slider {
+                left: 50.1%;
+                background-color: #16a085;
+            }
+        }
+
+        .menu li:nth-child(5):hover,
+        .menu li:nth-child(5):focus,
+        .menu li:nth-child(5):active {
+            & ~ .slider {
+                left: 66.8%;
+                background-color: rgb(223, 226, 43);
+            }
+        }
+
+        .menu li:nth-child(6):hover,
+        .menu li:nth-child(6):focus,
+        .menu li:nth-child(6):active {
+            & ~ .slider {
+                left: 83.5%;
+                background-color: rgb(226, 43, 171);
+            }
+        }
+
+        /* Add styles for the tooltip */
+        .tooltip {
+            position: absolute;
+            top: 120px; /* Adjust the top position as needed */
+            left: 0;
+            width: 100%;
+            text-align: center;
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            display: none;
+        }
+
+        /* Show the tooltip when the corresponding menu item is hovered */
+        .menu li:nth-child(2):hover .tooltip-roa,
+        .menu li:nth-child(3):hover .tooltip-prediction,
+        .menu li:nth-child(4):hover .tooltip-total,
+        .menu li:nth-child(5):hover .tooltip-ranking,
+        .menu li:nth-child(6):hover .tooltip-news {
+            display: block;
+        }
+
+        .tooltip.tooltip-roa {
+        background-color: #eee;
+        text-align: left;
+        font-size: 90%; /* You can adjust the percentage to your preference */
+        padding: 10px; /* Adjust padding as needed */
+        color: black; /* Set text color to black */
+    }
+
+    .tooltip.tooltip-prediction {
+        background-color: #eee;
+        text-align: left;
+        font-size: 90%; /* You can adjust the percentage to your preference */
+        padding: 10px; /* Adjust padding as needed */
+        color: black; /* Set text color to black */
+    }
+
+    .tooltip.tooltip-total {
+        background-color: #eee;
+        text-align: left;
+        font-size: 90%; /* You can adjust the percentage to your preference */
+        padding: 10px; /* Adjust padding as needed */
+        color: black; /* Set text color to black */
+    }
+
+    .tooltip.tooltip-ranking {
+        background-color: #eee;
+        text-align: left;
+        font-size: 90%; /* You can adjust the percentage to your preference */
+        padding: 10px; /* Adjust padding as needed */
+        color: black; /* Set text color to black */
+    }
+
+    .tooltip.tooltip-news {
+        background-color: #eee;
+        text-align: left;
+        font-size: 90%; /* You can adjust the percentage to your preference */
+        padding: 10px; /* Adjust padding as needed */
+        color: black; /* Set text color to black */
+    }
+
+    
+    
+    </style>
+</head>
+<body>
+    <h1>stock information analysis</h1><br>
+    <p><input type="serch" id="D1" name="D1" aria-label="Search" style="margin-left: 5%; border-radius: 10px; border: 0; width: 500px; height: 60px; font-size: 16px;" value="<%-data1%>"></p>
+    <ul class="menu">
+        <li><a style="font-size: 24px;" href="/" >Home</a></li>
+        <li>
+            <a style="font-size: 24px;" onclick="ROA_ROE()">ROE, ROA, 부채비율 변화율</a>
+        </li>
+        <li>
+            <a style="font-size: 24px;" onclick="modified_stock_price()">수정 주가 예측</a>
+        </li>
+        <li>
+            <a style="font-size: 24px;" onclick="goToTotal()">종합 평가</a>
+        </li>
+        <li>
+            <a style="font-size: 24px;" onclick="rank()">기업 순위</a>
+        </li>
+        <li>
+            <a style="font-size: 24px;" onclick="news()">최신 뉴스</a>
+        </li>
+        
+        <li class="slider"></li>
+    </ul>
+    <br><br><br>
+    <div style="text-align: center;">
+        <div>
+            <div style="display: inline-block;">
+                <canvas id="roeChart" width="200" height="400"></canvas><br>
+            </div>
+            <div style="display: inline-block;">
+                <canvas id="roaChart" width="200" height="400"></canvas><br>
+            </div>
+            <div style="display: inline-block;">
+                <canvas id="debtRatioChart" width="200" height="400"></canvas><br>
+            </div>
+            <div style="display: inline-block;">
+                <canvas id="epsChart" width="200" height="400"></canvas><br>
+            </div>
+            <div style="display: inline-block;">
+                <canvas id="bpsChart" width="200" height="400"></canvas><br>
+            </div>
+            <div style="display: inline-block;">
+                <canvas id="spsChart" width="200" height="400"></canvas><br>
+            </div>
+            <div style="display: inline-block;">
+                <canvas id="cfpsChart" width="200" height="400"></canvas><br>
+            </div>
+        </div>  
+    </div>
+</body>
+
+<script>
+
+        // ROE Chart
+        var roeData = {
+            labels: ["ROE"],
+            datasets: [{
+                label: "ROE",
+                backgroundColor: "rgba(158, 53, 0, 1)",
+                borderColor: "rgba(75,192,192,1)",
+                data: [<%- ROE %>],
+            }]
+        };
+
+        var roeChartCtx = document.getElementById('roeChart').getContext('2d');
+            var roeChart = new Chart(roeChartCtx, {
+                type: 'bar',
+                data: roeData,
+                options: {
+                    scales: {
+                        y: {
+                            suggestedMin: 0,
+                            suggestedMax: 1
+                        }
+                    }
+                }
+            });
+
+        // ROA Chart
+        var roaData = {
+            labels: ["ROA"],
+            datasets: [{
+                label: "ROA",
+                backgroundColor: "rgba(128, 206, 0, 0.63)",
+                borderColor: "rgba(128, 206, 0, 1)",
+                data: [<%- ROA %>],
+            }]
+        };
+
+        var roaChartCtx = document.getElementById('roaChart').getContext('2d');
+        var roaChart = new Chart(roaChartCtx, {
+            type: 'bar',
+            data: roaData,
+            options: {
+                scales: {
+                    y: {
+                        suggestedMin: 0,
+                        suggestedMax: 1
+                    }
+                }
+            }
+        });
+
+        // Debt Ratio Chart
+        var debtRatioData = {
+            labels: ["부채 비율"],
+            datasets: [{
+                label: "부채 비율",
+                backgroundColor: "rgba(255, 99, 132, 0.4)", // Different color
+                borderColor: "rgba(255, 99, 132, 1)",      // Different color
+                data: [<%- 부채비율 %>],
+            }]
+        };
+
+        var debtRatioChartCtx = document.getElementById('debtRatioChart').getContext('2d');
+        var debtRatioChart = new Chart(debtRatioChartCtx, {
+            type: 'bar',
+            data: debtRatioData,
+            options: {
+                scales: {
+                    y: {
+                        suggestedMin: 0,
+                        suggestedMax: 1
+                    }
+                }
+            }
+        });
+
+        // EPS Chart
+        var epsData = {
+            labels: ["EPS (주당순이익)"],
+            datasets: [{
+                label: "EPS",
+                backgroundColor: "rgba(255, 205, 86, 0.4)", // Different color
+                borderColor: "rgba(255, 205, 86, 1)",      // Different color
+                data: [<%- EPS %>],
+            }]
+        };
+
+        var epsChartCtx = document.getElementById('epsChart').getContext('2d');
+        var epsChart = new Chart(epsChartCtx, {
+            type: 'bar',
+            data: epsData,
+            options: {
+                scales: {
+                    y: {
+                        suggestedMin: 0,
+                        suggestedMax: 80000
+                    }
+                }
+            }
+        });
+
+        // BPS Chart
+        var bpsData = {
+            labels: ["BPS (주당순자산가치)"],
+            datasets: [{
+                label: "BPS",
+                backgroundColor: "rgba(54, 162, 235, 0.4)", // Different color
+                borderColor: "rgba(54, 162, 235, 1)",      // Different color
+                data: [<%- BPS %>],
+            }]
+        };
+
+        var bpsChartCtx = document.getElementById('bpsChart').getContext('2d');
+        var bpsChart = new Chart(bpsChartCtx, {
+            type: 'bar',
+            data: bpsData,
+            options: {
+                scales: {
+                    y: {
+                        suggestedMin: 0,
+                        suggestedMax: 70000
+                    }
+                }
+            }
+        });
+
+        // SPS Chart
+        var spsData = {
+            labels: ["SPS (주당매출액)"],
+            datasets: [{
+                label: "SPS",
+                backgroundColor: "rgba(255, 159, 64, 0.4)", // Different color
+                borderColor: "rgba(255, 159, 64, 1)",      // Different color
+                data: [<%- SPS %>],
+            }]
+        };
+
+        var spsChartCtx = document.getElementById('spsChart').getContext('2d');
+        var spsChart = new Chart(spsChartCtx, {
+            type: 'bar',
+            data: spsData,
+            options: {
+                scales: {
+                    y: {
+                        suggestedMin: 0,
+                        suggestedMax: 2100000
+                    }
+                }
+            }
+        });
+
+        // CFPS Chart
+        var cfpsData = {
+            labels: ["CFPS (주당현금흐름표)"],
+            datasets: [{
+                label: "CFPS",
+                backgroundColor: "rgba(153, 102, 255, 0.4)", // Different color
+                borderColor: "rgba(153, 102, 255, 1)",      // Different color
+                data: [<%- CFPS %>],
+            }]
+        };
+
+        var cfpsChartCtx = document.getElementById('cfpsChart').getContext('2d');
+        var cfpsChart = new Chart(cfpsChartCtx, {
+            type: 'bar',
+            data: cfpsData,
+            options: {
+                scales: {
+                    y: {
+                        suggestedMin: 0,
+                        suggestedMax: 150000
+                    }
+                }
+            }
+        });
+
+
+
+        function ROA_ROE() {
+        var inputText = document.getElementById('D1').value;
+        window.location.href = "/ROA-ROE?D1=" + encodeURIComponent(inputText);
+        }
+
+        function modified_stock_price() {
+            var inputText = document.getElementById('D1').value;
+            window.location.href = "/modified-stock-price?D1=" + encodeURIComponent(inputText);
+        }
+
+        function rank(){
+          var inputText = document.getElementById('D1').value;
+            window.location.href = "/rank?D1=" + encodeURIComponent(inputText);
+        }
+
+        function goToTotal() {
+            var inputText = document.getElementById('D1').value;
+            window.location.href = "/total?D1=" + encodeURIComponent(inputText);
+        }
+            
+        function news(){
+            var inputText = document.getElementById('D1').value;
+            window.location.href = "/search?D1=" + encodeURIComponent(inputText);
+        }
+</script>
+</html>

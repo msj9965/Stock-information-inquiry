@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>재무지표 기업 랭킹</title>
+    <style>
+      * {
+          box-sizing: border-box;
+      }
+      .hidden {
+            display: none;
+        }
+
+      html, body {
+          margin: 0;
+          padding: 0;
+      }
+
+      body {
+          font-family: 'PT Sans', Arial, Verdana;
+          background-color: #eee;
+      }
+
+      h1 {
+          text-align: center;
+          font-size: 48px;
+          text-transform: uppercase;
+          letter-spacing: 3px;
+          color: #222;
+      }
+
+      .menu {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          width: 100%;
+          height: 120px;
+          
+          position: relative;
+          background-color: #2c3e50;
+          z-index: 8;
+      }
+
+      .menu li {
+          float: left;
+          width: 16.6%;
+          height: 100%;
+          margin: 0;
+          padding: 0;
+      }
+
+      .menu a {
+          display: flex;
+          width: 100%;
+          height: 100%;
+          justify-content: center;
+          align-items: center;
+          color: #fff;
+          text-decoration: none;
+          position: relative;
+          font-size: 18px;
+          z-index: 9;
+      }
+
+      .menu a.active {
+          background-color: #e74c3c;
+          pointer-events: none;
+      }
+
+      .menu li.slider {
+          width: 16.7%;
+          height: 100%;
+          position: absolute;
+          left: 0;
+          top: 0;
+          background-color: #e74c3c;
+          z-index: 8;
+          transition: left .4s, background-color .4s;
+      }
+
+      .menu li:nth-child(1):hover,
+      .menu li:nth-child(1):focus,
+      .menu li:nth-child(1):active {
+          & ~ .slider {
+              left: 0;
+              background-color: #3498db;
+          }
+      }
+
+      .menu li:nth-child(2):hover,
+      .menu li:nth-child(2):focus,
+      .menu li:nth-child(2):active {
+          & ~ .slider {
+              left: 16.7%;
+              background-color: #9b59b6;
+          }
+      }
+
+      .menu li:nth-child(3):hover,
+      .menu li:nth-child(3):focus,
+      .menu li:nth-child(3):active {
+          & ~ .slider {
+              left: 33.4%;
+              background-color: #e67e22;
+          }
+      }
+
+      .menu li:nth-child(4):hover,
+      .menu li:nth-child(4):focus,
+      .menu li:nth-child(4):active {
+          & ~ .slider {
+              left: 50.1%;
+              background-color: #16a085;
+          }
+      }
+
+      .menu li:nth-child(5):hover,
+      .menu li:nth-child(5):focus,
+      .menu li:nth-child(5):active {
+          & ~ .slider {
+              left: 66.8%;
+              background-color: rgb(223, 226, 43);
+          }
+      }
+
+      .menu li:nth-child(6):hover,
+      .menu li:nth-child(6):focus,
+      .menu li:nth-child(6):active {
+          & ~ .slider {
+              left: 83.5%;
+              background-color: rgb(226, 43, 171);
+          }
+      }
+
+      /* Add styles for the tooltip */
+      .tooltip {
+          position: absolute;
+          top: 120px; /* Adjust the top position as needed */
+          left: 0;
+          width: 100%;
+          text-align: center;
+          background-color: #333;
+          color: #fff;
+          padding: 10px;
+          display: none;
+      }
+
+      /* Show the tooltip when the corresponding menu item is hovered */
+      .menu li:nth-child(2):hover .tooltip-roa,
+      .menu li:nth-child(3):hover .tooltip-prediction,
+      .menu li:nth-child(4):hover .tooltip-total,
+      .menu li:nth-child(5):hover .tooltip-ranking,
+      .menu li:nth-child(6):hover .tooltip-news {
+          display: block;
+      }
+
+      .tooltip.tooltip-roa {
+      background-color: #eee;
+      text-align: left;
+      font-size: 90%; /* You can adjust the percentage to your preference */
+      padding: 10px; /* Adjust padding as needed */
+      color: black; /* Set text color to black */
+  }
+
+  .tooltip.tooltip-prediction {
+      background-color: #eee;
+      text-align: left;
+      font-size: 90%; /* You can adjust the percentage to your preference */
+      padding: 10px; /* Adjust padding as needed */
+      color: black; /* Set text color to black */
+  }
+
+  .tooltip.tooltip-total {
+      background-color: #eee;
+      text-align: left;
+      font-size: 90%; /* You can adjust the percentage to your preference */
+      padding: 10px; /* Adjust padding as needed */
+      color: black; /* Set text color to black */
+  }
+
+  .tooltip.tooltip-ranking {
+      background-color: #eee;
+      text-align: left;
+      font-size: 90%; /* You can adjust the percentage to your preference */
+      padding: 10px; /* Adjust padding as needed */
+      color: black; /* Set text color to black */
+  }
+
+  .tooltip.tooltip-news {
+      background-color: #eee;
+      text-align: left;
+      font-size: 90%; /* You can adjust the percentage to your preference */
+      padding: 10px; /* Adjust padding as needed */
+      color: black; /* Set text color to black */
+  }
+
+  
+  
+  </style>
+    
+</head>
+<body>
+
+  <h1>stock information analysis</h1><br>
+    <p><input type="serch" id="D1" name="D1" aria-label="Search" style="margin-left: 5%; border-radius: 10px; border: 0; width: 500px; height: 60px; font-size: 16px;" value="<%-data1%>"></p>
+    <ul class="menu">
+        <li><a style="font-size: 24px;" href="/" >Home</a></li>
+        <li>
+            <a style="font-size: 24px;" onclick="ROA_ROE()">ROE, ROA, 부채비율 변화율</a>
+        </li>
+        <li>
+            <a style="font-size: 24px;" onclick="modified_stock_price()">수정 주가 예측</a>
+        </li>
+        <li>
+          <a style="font-size: 24px;" onclick="goToTotal()">종합 평가</a>
+        </li>
+        <li>
+            <a style="font-size: 24px;" onclick="rank()">기업 순위</a>
+        </li>
+        <li>
+          <a style="font-size: 24px;" onclick="news()">최신 뉴스</a>
+      </li>
+        
+        <li class="slider"></li>
+    </ul>
+    <br><br><br>
+  <div style="text-align: center;">
+    <p style="font-size: 24px; color: #656464; ">2022년 각 재무지표 상위 10 종목</p>
+    <div class="flex flex-wrap gap-2">
+      <button id="button1" style="background-color:#8b45dba7; border-radius: 10px; border:0cap; width: 200px; height: 60px; color: #ffffff;">ROA 상위 10 기업</button>
+      <button id="button2" style="background-color:#369a5992; border-radius: 10px; border:0cap; width: 200px; height: 60px; color: #ffffff;">ROE 상위 10 기업</button>
+      <button id="button3" style="background-color:#b5b253a7; border-radius: 10px; border:0cap; width: 200px; height: 60px; color: #ffffff;">부채비율 상위 10 기업</button>
+      <button id="button4" style="background-color:#0e8299a7; border-radius: 10px; border:0cap; width: 200px; height: 60px; color: #ffffff;">주당순이익(EPS) 상위 10 기업</button>
+      <button id="button5" style="background-color:#9a3692a7; border-radius: 10px; border:0cap; width: 240px; height: 60px; color: #ffffff;">주당순자산가치(BPS) 상위 10 기업</button>
+      <button id="button6" style="background-color:#264acca7; border-radius: 10px; border:0cap; width: 200px; height: 60px; color: #ffffff;">주당매출액(SPS) 상위 10 기업</button>
+      <button id="button7" style="background-color:#9a3636a7; border-radius: 10px; border:0cap; width: 240px; height: 60px; color: #ffffff;">주당현금흐름(CFPS) 상위 10 기업</button>
+    </div>
+  </div>
+
+  <br><br>
+  <div style="text-align: center;" id="content1" class="hidden">
+      <!-- ROA 테이블 내용 -->
+      <table style="display:inline-block; border-collapse:collapse; border-width: 2px; border-color: #000000; border-style: solid;">
+        <thead>
+          <tr>
+            <th style="border: 2px solid #000000; padding: 8px;">회사명</th>
+            <th style="border: 2px solid #000000; padding: 8px;">ROA 값</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (let i = 0; i < ROARank.length; i++) { %>
+            <tr>
+              <td style="border: 2px solid #000000; padding: 8px;"><%- ROARank[i][0] %></td>
+              <td style="border: 2px solid #000000; padding: 8px;"><%- ROARank[i][1] %></td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+  </div>
+  
+  <div style="text-align: center;" id="content2" class="hidden">
+      <!-- ROE 테이블 내용 -->
+      <table style="display:inline-block; border-collapse:collapse; border-width: 2px; border-color: #000000; border-style: solid;">
+        <thead>
+          <tr>
+            <th style="border: 2px solid #000000; padding: 8px;">회사명</th>
+            <th style="border: 2px solid #000000; padding: 8px;">ROE 값</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (let i = 0; i < ROERank.length; i++) { %>
+            <tr>
+              <td style="border: 2px solid #000000; padding: 8px;"><%- ROERank[i][0] %></td>
+              <td style="border: 2px solid #000000; padding: 8px;"><%- ROERank[i][1] %></td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+  </div>
+
+    <div style="text-align: center;" id="content3" class="hidden">
+        <!-- 부채비율 테이블 내용 -->
+        <table style="display:inline-block; border-collapse:collapse; border-width: 2px; border-color: #000000; border-style: solid;">
+          <thead>
+            <tr>
+              <th style="border: 2px solid #000000; padding: 8px;">회사명</th>
+              <th style="border: 2px solid #000000; padding: 8px;">부채비율 값</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% for (let i = 0; i < debtRank.length; i++) { %>
+              <tr>
+                <td style="border: 2px solid #000000; padding: 8px;"><%- debtRank[i][0] %></td>
+                <td style="border: 2px solid #000000; padding: 8px;"><%- debtRank[i][1] %></td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+    </div>
+
+    <div style="text-align: center;" id="content4" class="hidden">
+        <!-- 주당순이익(EPS) 테이블 내용 -->
+        <table style="display:inline-block; border-collapse:collapse; border-width: 2px; border-color: #000000; border-style: solid;">
+          <thead>
+            <tr>
+              <th style="border: 2px solid #000000; padding: 8px;">회사명</th>
+              <th style="border: 2px solid #000000; padding: 8px;">주당순이익 값</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% for (let i = 0; i < EPSRank.length; i++) { %>
+              <tr>
+                <td style="border: 2px solid #000000; padding: 8px;"><%- EPSRank[i][0] %></td>
+                <td style="border: 2px solid #000000; padding: 8px;"><%- EPSRank[i][1] %></td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+    </div>
+
+    <div style="text-align: center;" id="content5" class="hidden">
+        <!-- 주당순자산가치(BPS) 테이블 내용 -->
+        <table style="display:inline-block; border-collapse:collapse; border-width: 2px; border-color: #000000; border-style: solid;">
+          <thead>
+            <tr>
+              <th style="border: 2px solid #000000; padding: 8px;">회사명</th>
+              <th style="border: 2px solid #000000; padding: 8px;">주당순자산가치 값</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% for (let i = 0; i < BPSRank.length; i++) { %>
+              <tr>
+                <td style="border: 2px solid #000000; padding: 8px;"><%- BPSRank[i][0] %></td>
+                <td style="border: 2px solid #000000; padding: 8px;"><%- BPSRank[i][1] %></td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+    </div>
+
+    <div style="text-align: center;" id="content6" class="hidden">
+        <!-- 주당매출액(SPS) 테이블 내용 -->
+        <table style="display:inline-block; border-collapse:collapse; border-width: 2px; border-color: #000000; border-style: solid;">
+          <thead>
+            <tr>
+              <th style="border: 2px solid #000000; padding: 8px;">회사명</th>
+              <th style="border: 2px solid #000000; padding: 8px;">주당매출액 값</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% for (let i = 0; i < SPSRank.length; i++) { %>
+              <tr>
+                <td style="border: 2px solid #000000; padding: 8px;"><%- SPSRank[i][0] %></td>
+                <td style="border: 2px solid #000000; padding: 8px;"><%- SPSRank[i][1] %></td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+    </div>
+
+    <div style="text-align: center;" id="content7" class="hidden">
+        <!-- 주당현금흐름(CFPS) 테이블 내용 -->
+        <table style="display:inline-block; border-collapse:collapse; border-width: 2px; border-color: #000000; border-style: solid;">
+          <thead>
+            <tr>
+              <th style="border: 2px solid #000000; padding: 8px;">회사명</th>
+              <th style="border: 2px solid #000000; padding: 8px;">주당현금흐름 값</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% for (let i = 0; i < CFPSRank.length; i++) { %>
+              <tr>
+                <td style="border: 2px solid #000000; padding: 8px;"><%- CFPSRank[i][0] %></td>
+                <td style="border: 2px solid #000000; padding: 8px;"><%- CFPSRank[i][1] %></td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.getElementById("button1").addEventListener("click", function() {
+            hideAllContent();
+            document.getElementById("content1").style.display = "block";
+        });
+
+        document.getElementById("button2").addEventListener("click", function() {
+            hideAllContent();
+            document.getElementById("content2").style.display = "block";
+        });
+
+        document.getElementById("button3").addEventListener("click", function() {
+            hideAllContent();
+            document.getElementById("content3").style.display = "block";
+        });
+        
+        document.getElementById("button4").addEventListener("click", function() {
+            hideAllContent();
+            document.getElementById("content4").style.display = "block";
+        });
+
+        document.getElementById("button5").addEventListener("click", function() {
+            hideAllContent();
+            document.getElementById("content5").style.display = "block";
+        });
+
+        document.getElementById("button6").addEventListener("click", function() {
+            hideAllContent();
+            document.getElementById("content6").style.display = "block";
+        });
+
+        document.getElementById("button7").addEventListener("click", function() {
+            hideAllContent();
+            document.getElementById("content7").style.display = "block";
+        });
+
+        function hideAllContent() {
+            for (let i = 1; i <= 7; i++) {
+                document.getElementById("content" + i).style.display = "none";
+            }
+        }
+
+        function ROA_ROE() {
+        var inputText = document.getElementById('D1').value;
+        window.location.href = "/ROA-ROE?D1=" + encodeURIComponent(inputText);
+        }
+
+        function modified_stock_price() {
+            var inputText = document.getElementById('D1').value;
+            window.location.href = "/modified-stock-price?D1=" + encodeURIComponent(inputText);
+        }
+
+        function rank(){
+            var inputText = document.getElementById('D1').value;
+            window.location.href = "/rank?D1=" + encodeURIComponent(inputText);
+        }
+
+        function goToTotal() {
+            var inputText = document.getElementById('D1').value;
+            window.location.href = "/total?D1=" + encodeURIComponent(inputText);
+        }
+            
+        function news(){
+            var inputText = document.getElementById('D1').value;
+            window.location.href = "/search?D1=" + encodeURIComponent(inputText);
+        }
+    </script>
+</body>
+</html>
